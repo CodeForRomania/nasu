@@ -1,16 +1,10 @@
-// CRUD
-// Create
-// Read
-// Update
-// Delete
-
 export default `
 
   type User {
     id: Int!
     username: String!
     email: String!
-    teams: [Team!]!
+    features: [String!]!
   }
 
   type Query {
@@ -36,5 +30,4 @@ export default `
     register(username: String!, email: String!, password: String!): RegisterResponse!
     login(email: String!, password: String!): LoginResponse!
   }
-
-`;
+`

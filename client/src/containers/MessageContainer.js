@@ -1,10 +1,10 @@
-import React from 'react';
-import { graphql } from 'react-apollo';
-import gql from 'graphql-tag';
-import { Button, Comment } from 'semantic-ui-react';
+import React from 'react'
+import { graphql } from 'react-apollo'
+import gql from 'graphql-tag'
+import { Comment } from 'semantic-ui-react'
 
-import FileUpload from '../components/FileUpload';
-import RenderText from '../components/RenderText';
+import FileUpload from '../components/FileUpload'
+import RenderText from '../components/RenderText'
 
 const newChannelMessageSubscription = gql`
   subscription($channelId: Int!) {
@@ -19,14 +19,14 @@ const newChannelMessageSubscription = gql`
       created_at
     }
   }
-`;
+`
 
 const Message = ({ message: { url, text, filetype } }) => {
   if (url) {
     if (filetype.startsWith('image/')) {
-      return <img src={url} alt="" />;
+      return <img src={url} alt="" />
     } else if (filetype === 'text/plain') {
-      return <RenderText url={url} />;
+      return <RenderText url={url} />
     } else if (filetype.startsWith('audio/')) {
       return (
         <div>
@@ -34,27 +34,27 @@ const Message = ({ message: { url, text, filetype } }) => {
             <source src={url} type={filetype} />
           </audio>
         </div>
-      );
+      )
     }
   }
-  return <Comment.Text>{text}</Comment.Text>;
-};
+  return <Comment.Text>{text}</Comment.Text>
+}
 
 class MessageContainer extends React.Component {
   state = {
-    hasMoreItems: true,
-  };
+    hasMoreItems: true
+  }
 
   componentWillMount() {
-    this.unsubscribe = this.subscribe(this.props.channelId);
+    this.unsubscribe = this.subscribe(this.props.channelId)
   }
 
   componentWillReceiveProps({ data: { messages }, channelId }) {
     if (this.props.channelId !== channelId) {
       if (this.unsubscribe) {
-        this.unsubscribe();
+        this.unsubscribe()
       }
-      this.unsubscribe = this.subscribe(channelId);
+      this.unsubscribe = this.subscribe(channelId)
     }
 
     if (
@@ -65,19 +65,19 @@ class MessageContainer extends React.Component {
       this.props.data.messages.length !== messages.length
     ) {
       // 35 items
-      const heightBeforeRender = this.scroller.scrollHeight;
+      const heightBeforeRender = this.scroller.scrollHeight
       // wait for 70 items to render
       setTimeout(() => {
         if (this.scroller) {
-          this.scroller.scrollTop = this.scroller.scrollHeight - heightBeforeRender;
+          this.scroller.scrollTop = this.scroller.scrollHeight - heightBeforeRender
         }
-      }, 120);
+      }, 120)
     }
   }
 
   componentWillUnmount() {
     if (this.unsubscribe) {
-      this.unsubscribe();
+      this.unsubscribe()
     }
   }
 
@@ -85,22 +85,22 @@ class MessageContainer extends React.Component {
     this.props.data.subscribeToMore({
       document: newChannelMessageSubscription,
       variables: {
-        channelId,
+        channelId
       },
       updateQuery: (prev, { subscriptionData }) => {
         if (!subscriptionData) {
-          return prev;
+          return prev
         }
 
         return {
           ...prev,
-          messages: [subscriptionData.newChannelMessage, ...prev.messages],
-        };
-      },
-    });
+          messages: [subscriptionData.newChannelMessage, ...prev.messages]
+        }
+      }
+    })
 
   handleScroll = () => {
-    const { data: { messages, fetchMore }, channelId } = this.props;
+    const { data: { messages, fetchMore }, channelId } = this.props
     if (
       this.scroller &&
       this.scroller.scrollTop < 100 &&
@@ -110,28 +110,28 @@ class MessageContainer extends React.Component {
       fetchMore({
         variables: {
           channelId,
-          cursor: messages[messages.length - 1].created_at,
+          cursor: messages[messages.length - 1].created_at
         },
         updateQuery: (previousResult, { fetchMoreResult }) => {
           if (!fetchMoreResult) {
-            return previousResult;
+            return previousResult
           }
 
           if (fetchMoreResult.messages.length < 35) {
-            this.setState({ hasMoreItems: false });
+            this.setState({ hasMoreItems: false })
           }
 
           return {
             ...previousResult,
-            messages: [...previousResult.messages, ...fetchMoreResult.messages],
-          };
-        },
-      });
+            messages: [...previousResult.messages, ...fetchMoreResult.messages]
+          }
+        }
+      })
     }
-  };
+  }
 
   render() {
-    const { data: { loading, messages, fetchMore }, channelId } = this.props;
+    const { data: { loading, messages /*fetchMore*/ }, channelId } = this.props
     return loading ? null : (
       <div
         style={{
@@ -141,17 +141,17 @@ class MessageContainer extends React.Component {
           paddingRight: '20px',
           display: 'flex',
           flexDirection: 'column-reverse',
-          overflowY: 'auto',
+          overflowY: 'auto'
         }}
         onScroll={this.handleScroll}
-        ref={(scroller) => {
-          this.scroller = scroller;
+        ref={scroller => {
+          this.scroller = scroller
         }}
       >
         <FileUpload
           style={{
             display: 'flex',
-            flexDirection: 'column-reverse',
+            flexDirection: 'column-reverse'
           }}
           channelId={channelId}
           disableClick
@@ -177,7 +177,7 @@ class MessageContainer extends React.Component {
           </Comment.Group>
         </FileUpload>
       </div>
-    );
+    )
   }
 }
 
@@ -194,13 +194,13 @@ const messagesQuery = gql`
       created_at
     }
   }
-`;
+`
 
 export default graphql(messagesQuery, {
   options: props => ({
     fetchPolicy: 'network-only',
     variables: {
-      channelId: props.channelId,
-    },
-  }),
-})(MessageContainer);
+      channelId: props.channelId
+    }
+  })
+})(MessageContainer)

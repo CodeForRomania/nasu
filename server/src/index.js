@@ -1,93 +1,91 @@
-import express from 'express';
-import bodyParser from 'body-parser';
-import { graphqlExpress, graphiqlExpress } from 'apollo-server-express';
-import { makeExecutableSchema } from 'graphql-tools';
-import path from 'path';
-import { fileLoader, mergeTypes, mergeResolvers } from 'merge-graphql-schemas';
-import cors from 'cors';
-import jwt from 'jsonwebtoken';
-import { createServer } from 'http';
-import { execute, subscribe } from 'graphql';
-import { SubscriptionServer } from 'subscriptions-transport-ws';
-import formidable from 'formidable';
-import DataLoader from 'dataloader';
+import express from 'express'
+import bodyParser from 'body-parser'
+import { graphqlExpress, graphiqlExpress } from 'apollo-server-express'
+import { makeExecutableSchema } from 'graphql-tools'
+import path from 'path'
+import { fileLoader, mergeTypes, mergeResolvers } from 'merge-graphql-schemas'
+import cors from 'cors'
+import jwt from 'jsonwebtoken'
+import { createServer } from 'http'
+import { execute, subscribe } from 'graphql'
+import { SubscriptionServer } from 'subscriptions-transport-ws'
+import formidable from 'formidable'
+import DataLoader from 'dataloader'
 
-import models from './models';
-import { refreshTokens } from './auth';
-import { channelBatcher } from './batchFunctions';
+import models from './models'
+import { refreshTokens } from './auth'
+import { channelBatcher } from './batchFunctions'
 
-const SECRET = 'asiodfhoi1hoi23jnl1kejd';
-const SECRET2 = 'asiodfhoi1hoi23jnl1kejasdjlkfasdd';
+const SECRET = 'scretul-unu'
+const SECRET2 = 'sectretul-doi'
 
-const typeDefs = mergeTypes(fileLoader(path.join(__dirname, './schema')));
+const typeDefs = mergeTypes(fileLoader(path.join(__dirname, './schema')))
 
-const resolvers = mergeResolvers(fileLoader(path.join(__dirname, './resolvers')));
+const resolvers = mergeResolvers(fileLoader(path.join(__dirname, './resolvers')))
 
 const schema = makeExecutableSchema({
   typeDefs,
-  resolvers,
-});
+  resolvers
+})
 
-const app = express();
+const app = express()
 
-app.use(cors('*'));
+app.use(cors('*'))
 
 const addUser = async (req, res, next) => {
-  const token = req.headers['x-token'];
+  const token = req.headers['x-token']
   if (token) {
     try {
-      const { user } = jwt.verify(token, SECRET);
-      req.user = user;
+      const { user } = jwt.verify(token, SECRET)
+      req.user = user
     } catch (err) {
-      const refreshToken = req.headers['x-refresh-token'];
-      const newTokens = await refreshTokens(token, refreshToken, models, SECRET, SECRET2);
+      const refreshToken = req.headers['x-refresh-token']
+      const newTokens = await refreshTokens(token, refreshToken, models, SECRET, SECRET2)
       if (newTokens.token && newTokens.refreshToken) {
-        res.set('Access-Control-Expose-Headers', 'x-token, x-refresh-token');
-        res.set('x-token', newTokens.token);
-        res.set('x-refresh-token', newTokens.refreshToken);
+        res.set('Access-Control-Expose-Headers', 'x-token, x-refresh-token')
+        res.set('x-token', newTokens.token)
+        res.set('x-refresh-token', newTokens.refreshToken)
       }
-      req.user = newTokens.user;
+      req.user = newTokens.user
     }
   }
-  next();
-};
+  next()
+}
 
-const uploadDir = 'files';
+const uploadDir = 'files'
 
 const fileMiddleware = (req, res, next) => {
   if (!req.is('multipart/form-data')) {
-    return next();
+    return next()
   }
 
   const form = formidable.IncomingForm({
-    uploadDir,
-  });
+    uploadDir
+  })
 
   form.parse(req, (error, { operations }, files) => {
     if (error) {
-      console.log(error);
+      console.log(error)
     }
 
-    const document = JSON.parse(operations);
+    const document = JSON.parse(operations)
 
     if (Object.keys(files).length) {
-      const { file: { type, path: filePath } } = files;
-      console.log(type);
-      console.log(filePath);
+      const { file: { type, path: filePath } } = files
       document.variables.file = {
         type,
-        path: filePath,
-      };
+        path: filePath
+      }
     }
 
-    req.body = document;
-    next();
-  });
-};
+    req.body = document
+    next()
+  })
+}
 
-app.use(addUser);
+app.use(addUser)
 
-const graphqlEndpoint = '/graphql';
+const graphqlEndpoint = '/graphql'
 
 app.use(
   graphqlEndpoint,
@@ -101,22 +99,22 @@ app.use(
       SECRET,
       SECRET2,
       channelLoader: new DataLoader(ids => channelBatcher(ids, models, req.user)),
-      serverUrl: `${req.protocol}://${req.get('host')}`,
-    },
-  })),
-);
+      serverUrl: `${req.protocol}://${req.get('host')}`
+    }
+  }))
+)
 
 app.use(
   '/graphiql',
   graphiqlExpress({
     endpointURL: graphqlEndpoint,
-    subscriptionsEndpoint: 'ws://localhost:8081/subscriptions',
-  }),
-);
+    subscriptionsEndpoint: 'ws://localhost:8081/subscriptions'
+  })
+)
 
-app.use('/files', express.static('files'));
+app.use('/files', express.static('files'))
 
-const server = createServer(app);
+const server = createServer(app)
 
 models.sequelize.sync({}).then(() => {
   server.listen(8081, () => {
@@ -126,24 +124,24 @@ models.sequelize.sync({}).then(() => {
         execute,
         subscribe,
         schema,
-        onConnect: async ({ token, refreshToken }, webSocket) => {
+        onConnect: async ({ token, refreshToken } /*webSocket*/) => {
           if (token && refreshToken) {
             try {
-              const { user } = jwt.verify(token, SECRET);
-              return { models, user };
+              const { user } = jwt.verify(token, SECRET)
+              return { models, user }
             } catch (err) {
-              const newTokens = await refreshTokens(token, refreshToken, models, SECRET, SECRET2);
-              return { models, user: newTokens.user };
+              const newTokens = await refreshTokens(token, refreshToken, models, SECRET, SECRET2)
+              return { models, user: newTokens.user }
             }
           }
 
-          return { models };
-        },
+          return { models }
+        }
       },
       {
         server,
-        path: '/subscriptions',
-      },
-    );
-  });
-});
+        path: '/subscriptions'
+      }
+    )
+  })
+})

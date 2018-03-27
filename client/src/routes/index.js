@@ -1,63 +1,67 @@
-import React from 'react';
-import { BrowserRouter, Route, Switch, Redirect } from 'react-router-dom';
-import decode from 'jwt-decode';
-import Loadable from 'react-loadable';
+import React from 'react'
+import { BrowserRouter, Route, Switch, Redirect } from 'react-router-dom'
+import decode from 'jwt-decode'
+import Loadable from 'react-loadable'
 
 const isAuthenticated = () => {
-  const token = localStorage.getItem('token');
-  const refreshToken = localStorage.getItem('refreshToken');
+  const token = localStorage.getItem('token')
+  const refreshToken = localStorage.getItem('refreshToken')
   try {
-    decode(token);
-    const { exp } = decode(refreshToken);
+    decode(token)
+    const { exp } = decode(refreshToken)
     if (Date.now() / 1000 > exp) {
-      return false;
+      return false
     }
   } catch (err) {
-    return false;
+    return false
   }
 
-  return true;
-};
+  return true
+}
 
 const PrivateRoute = ({ component: Component, ...rest }) => (
   <Route
     {...rest}
     render={props =>
-      (isAuthenticated() ? (
+      isAuthenticated() ? (
         <Component {...props} />
       ) : (
         <Redirect
           to={{
-            pathname: '/login',
+            pathname: '/login'
           }}
         />
-      ))
+      )
     }
   />
-);
+)
 
-const Loading = () => <div>...loading</div>;
+const Loading = () => <div>...loading</div>
 
 const AsyncHome = Loadable({
   loader: () => import('./Home'),
-  loading: Loading,
-});
+  loading: Loading
+})
 const AsyncRegister = Loadable({
   loader: () => import('./Register'),
-  loading: Loading,
-});
+  loading: Loading
+})
+const AsyncCreateFeature = Loadable({
+  loader: () => import('./CreateFeature'),
+  loading: Loading
+})
 const AsyncLogin = Loadable({
   loader: () => import('./Login'),
-  loading: Loading,
-});
-const AsyncViewTeam = Loadable({
-  loader: () => import('./ViewTeam'),
-  loading: Loading,
-});
+  loading: Loading
+})
+const AsyncViewAdminAction = Loadable({
+  loader: () => import('./ViewAdminAction'),
+  loading: Loading
+})
 const AsyncCreateTeam = Loadable({
   loader: () => import('./CreateTeam'),
-  loading: Loading,
-});
+  loading: Loading
+})
 
 export default () => (
   <BrowserRouter>
@@ -65,8 +69,13 @@ export default () => (
       <Route path="/" exact component={AsyncHome} />
       <Route path="/register" exact component={AsyncRegister} />
       <Route path="/login" exact component={AsyncLogin} />
-      <PrivateRoute path="/view-team/:teamId?/:channelId?" exact component={AsyncViewTeam} />
+      <PrivateRoute
+        path="/view-admin-action/:featureId?/:channelId?"
+        exact
+        component={AsyncViewAdminAction}
+      />
+      <PrivateRoute path="/create-feature" exact component={AsyncCreateFeature} />
       <PrivateRoute path="/create-team" exact component={AsyncCreateTeam} />
     </Switch>
   </BrowserRouter>
-);
+)

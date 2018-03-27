@@ -1,12 +1,12 @@
-import React from 'react';
-import { Checkbox, Form, Input, Button, Modal } from 'semantic-ui-react';
-import { withFormik } from 'formik';
-import gql from 'graphql-tag';
-import { compose, graphql } from 'react-apollo';
-import findIndex from 'lodash/findIndex';
+import React from 'react'
+import { Checkbox, Form, Input, Button, Modal } from 'semantic-ui-react'
+import { withFormik } from 'formik'
+import gql from 'graphql-tag'
+import { compose, graphql } from 'react-apollo'
+import findIndex from 'lodash/findIndex'
 
-import { meQuery } from '../graphql/team';
-import MultiSelectUsers from './MultiSelectUsers';
+import { meQuery } from '../graphql/team'
+import MultiSelectUsers from './MultiSelectUsers'
 
 const AddChannelModal = ({
   open,
@@ -19,13 +19,13 @@ const AddChannelModal = ({
   resetForm,
   setFieldValue,
   teamId,
-  currentUserId,
+  currentUserId
 }) => (
   <Modal
     open={open}
-    onClose={(e) => {
-      resetForm();
-      onClose(e);
+    onClose={e => {
+      resetForm()
+      onClose(e)
     }}
   >
     <Modal.Header>Add Channel</Modal.Header>
@@ -64,9 +64,9 @@ const AddChannelModal = ({
           <Button
             disabled={isSubmitting}
             fluid
-            onClick={(e) => {
-              resetForm();
-              onClose(e);
+            onClick={e => {
+              resetForm()
+              onClose(e)
             }}
           >
             Cancel
@@ -78,7 +78,7 @@ const AddChannelModal = ({
       </Form>
     </Modal.Content>
   </Modal>
-);
+)
 
 const createChannelMutation = gql`
   mutation($teamId: Int!, $name: String!, $public: Boolean, $members: [Int!]) {
@@ -91,7 +91,7 @@ const createChannelMutation = gql`
       }
     }
   }
-`;
+`
 
 export default compose(
   graphql(createChannelMutation),
@@ -103,7 +103,7 @@ export default compose(
           teamId,
           name: values.name,
           public: values.public,
-          members: values.members,
+          members: values.members
         },
         optimisticResponse: {
           createChannel: {
@@ -113,24 +113,24 @@ export default compose(
               __typename: 'Channel',
               id: -1,
               name: values.name,
-              dm: false,
-            },
-          },
+              dm: false
+            }
+          }
         },
         update: (store, { data: { createChannel } }) => {
-          const { ok, channel } = createChannel;
+          const { ok, channel } = createChannel
           if (!ok) {
-            return;
+            return
           }
 
-          const data = store.readQuery({ query: meQuery });
-          const teamIdx = findIndex(data.me.teams, ['id', teamId]);
-          data.me.teams[teamIdx].channels.push(channel);
-          store.writeQuery({ query: meQuery, data });
-        },
-      });
-      onClose();
-      setSubmitting(false);
-    },
-  }),
-)(AddChannelModal);
+          const data = store.readQuery({ query: meQuery })
+          const teamIdx = findIndex(data.me.teams, ['id', teamId])
+          data.me.teams[teamIdx].channels.push(channel)
+          store.writeQuery({ query: meQuery, data })
+        }
+      })
+      onClose()
+      setSubmitting(false)
+    }
+  })
+)(AddChannelModal)

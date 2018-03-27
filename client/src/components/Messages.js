@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled from 'styled-components'
 
 export default styled.div`
   grid-column: 3;
@@ -8,4 +8,4 @@ export default styled.div`
   display: flex;
   flex-direction: column-reverse;
   overflow-y: auto;
-`;
+`

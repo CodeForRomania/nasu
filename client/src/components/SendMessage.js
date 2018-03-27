@@ -1,18 +1,18 @@
-import React from 'react';
-import styled from 'styled-components';
-import { Button, Icon, Input } from 'semantic-ui-react';
-import { withFormik } from 'formik';
+import React from 'react'
+import styled from 'styled-components'
+import { Button, Icon, Input } from 'semantic-ui-react'
+import { withFormik } from 'formik'
 
-import FileUpload from './FileUpload';
+import FileUpload from './FileUpload'
 
 const SendMessageWrapper = styled.div`
   grid-column: 3;
   padding: 20px;
   display: grid;
   grid-template-columns: 50px auto;
-`;
+`
 
-const ENTER_KEY = 13;
+const ENTER_KEY = 13
 
 const SendMessage = ({
   placeholder,
@@ -21,7 +21,7 @@ const SendMessage = ({
   handleBlur,
   handleSubmit,
   isSubmitting,
-  channelId,
+  channelId
 }) => (
   <SendMessageWrapper>
     <FileUpload channelId={channelId}>
@@ -30,9 +30,9 @@ const SendMessage = ({
       </Button>
     </FileUpload>
     <Input
-      onKeyDown={(e) => {
+      onKeyDown={e => {
         if (e.keyCode === ENTER_KEY && !isSubmitting) {
-          handleSubmit(e);
+          handleSubmit(e)
         }
       }}
       onChange={handleChange}
@@ -42,17 +42,17 @@ const SendMessage = ({
       placeholder={`Message #${placeholder}`}
     />
   </SendMessageWrapper>
-);
+)
 
 export default withFormik({
   mapPropsToValues: () => ({ message: '' }),
   handleSubmit: async (values, { props: { onSubmit }, setSubmitting, resetForm }) => {
     if (!values.message || !values.message.trim()) {
-      setSubmitting(false);
-      return;
+      setSubmitting(false)
+      return
     }
 
-    await onSubmit(values.message);
-    resetForm(false);
-  },
-})(SendMessage);
+    await onSubmit(values.message)
+    resetForm(false)
+  }
+})(SendMessage)

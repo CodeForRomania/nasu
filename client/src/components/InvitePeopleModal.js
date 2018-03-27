@@ -1,10 +1,10 @@
-import React from 'react';
-import { Form, Input, Button, Modal } from 'semantic-ui-react';
-import { withFormik } from 'formik';
-import gql from 'graphql-tag';
-import { compose, graphql } from 'react-apollo';
+import React from 'react'
+import { Form, Input, Button, Modal } from 'semantic-ui-react'
+import { withFormik } from 'formik'
+import gql from 'graphql-tag'
+import { compose, graphql } from 'react-apollo'
 
-import normalizeErrors from '../normalizeErrors';
+import normalizeErrors from '../normalizeErrors'
 
 const InvitePeopleModal = ({
   open,
@@ -15,7 +15,7 @@ const InvitePeopleModal = ({
   handleSubmit,
   isSubmitting,
   touched,
-  errors,
+  errors
 }) => (
   <Modal open={open} onClose={onClose}>
     <Modal.Header>Add People to your Team</Modal.Header>
@@ -43,7 +43,7 @@ const InvitePeopleModal = ({
       </Form>
     </Modal.Content>
   </Modal>
-);
+)
 
 const addTeamMemberMutation = gql`
   mutation($email: String!, $teamId: Int!) {
@@ -55,7 +55,7 @@ const addTeamMemberMutation = gql`
       }
     }
   }
-`;
+`
 
 export default compose(
   graphql(addTeamMemberMutation),
@@ -63,27 +63,27 @@ export default compose(
     mapPropsToValues: () => ({ email: '' }),
     handleSubmit: async (
       values,
-      { props: { onClose, teamId, mutate }, setSubmitting, setErrors },
+      { props: { onClose, teamId, mutate }, setSubmitting, setErrors }
     ) => {
       const response = await mutate({
-        variables: { teamId, email: values.email },
-      });
-      const { ok, errors } = response.data.addTeamMember;
+        variables: { teamId, email: values.email }
+      })
+      const { ok, errors } = response.data.addTeamMember
       if (ok) {
-        onClose();
-        setSubmitting(false);
+        onClose()
+        setSubmitting(false)
       } else {
-        setSubmitting(false);
-        const errorsLength = errors.length;
-        const filteredErrors = errors.filter(e => e.message !== 'user_id must be unique');
+        setSubmitting(false)
+        const errorsLength = errors.length
+        const filteredErrors = errors.filter(e => e.message !== 'user_id must be unique')
         if (errorsLength !== filteredErrors.length) {
           filteredErrors.push({
             path: 'email',
-            message: 'this user is already part of the team',
-          });
+            message: 'this user is already part of the team'
+          })
         }
-        setErrors(normalizeErrors(filteredErrors));
+        setErrors(normalizeErrors(filteredErrors))
       }
-    },
-  }),
-)(InvitePeopleModal);
+    }
+  })
+)(InvitePeopleModal)

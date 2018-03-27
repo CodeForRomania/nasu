@@ -1,66 +1,64 @@
-import React from 'react';
-import { extendObservable } from 'mobx';
-import { observer } from 'mobx-react';
-import { Message, Form, Button, Input, Container, Header } from 'semantic-ui-react';
-import { graphql } from 'react-apollo';
-import gql from 'graphql-tag';
+import React from 'react'
+import { extendObservable } from 'mobx'
+import { observer } from 'mobx-react'
+import { Message, Form, Button, Input, Container, Header } from 'semantic-ui-react'
+import { graphql } from 'react-apollo'
+import gql from 'graphql-tag'
 
-import { wsLink } from '../apollo';
+import { wsLink } from '../apollo'
 
 class Login extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
 
     extendObservable(this, {
       email: '',
       password: '',
-      errors: {},
-    });
+      errors: {}
+    })
   }
 
   onSubmit = async () => {
-    const { email, password } = this;
+    const { email, password } = this
     const response = await this.props.mutate({
-      variables: { email, password },
-    });
+      variables: { email, password }
+    })
 
-    console.log(response);
+    console.log(response)
 
-    const {
-      ok, token, refreshToken, errors,
-    } = response.data.login;
+    const { ok, token, refreshToken, errors } = response.data.login
 
     if (ok) {
-      localStorage.setItem('token', token);
-      localStorage.setItem('refreshToken', refreshToken);
-      wsLink.subscriptionClient.tryReconnect();
-      this.props.history.push('/view-team');
+      localStorage.setItem('token', token)
+      localStorage.setItem('refreshToken', refreshToken)
+      wsLink.subscriptionClient.tryReconnect()
+      this.props.history.push('/view-admin-action')
     } else {
-      const err = {};
+      const err = {}
       errors.forEach(({ path, message }) => {
-        err[`${path}Error`] = message;
-      });
+        err[`${path}Error`] = message
+      })
 
-      this.errors = err;
+      this.errors = err
     }
-  };
+  }
 
-  onChange = (e) => {
-    const { name, value } = e.target;
-    this[name] = value;
-  };
+  onChange = e => {
+    const { name, value } = e.target
+    this[name] = value
+  }
 
   render() {
-    const { email, password, errors: { emailError, passwordError } } = this;
+    const { email, password, errors: { emailError, passwordError } } = this
 
-    const errorList = [];
+    const errorList = []
 
     if (emailError) {
-      errorList.push(emailError);
+      errorList.push(emailError)
     }
 
     if (passwordError) {
-      errorList.push(passwordError);
+      errorList.push(passwordError)
     }
 
     return (
@@ -86,7 +84,7 @@ class Login extends React.Component {
           <Message error header="There was some errors with your submission" list={errorList} />
         ) : null}
       </Container>
-    );
+    )
   }
 }
 
@@ -102,6 +100,6 @@ const loginMutation = gql`
       }
     }
   }
-`;
+`
 
-export default graphql(loginMutation)(observer(Login));
+export default graphql(loginMutation)(observer(Login))
